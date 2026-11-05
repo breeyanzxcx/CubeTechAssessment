@@ -1,10 +1,19 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Products from './pages/customer/Products'
+import ProductDetails from './pages/customer/ProductDetails'
+import { CartProvider } from './context/CartContext'
+
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <h1 className="text-4xl font-bold text-blue-600">
-        CubeTech E-Commerce
-      </h1>
-    </div>
+    <CartProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<h1>CubeTech E-Commerce</h1>} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/products/:id" element={<ProductDetails />} />
+        </Routes>
+      </BrowserRouter>
+    </CartProvider>
   )
 }
 
