@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost/cubetech-ecommerce/backend/public/api'
+const API_BASE_URL = 'http://localhost:8000/api'
 
 async function request(endpoint, options = {}) {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
