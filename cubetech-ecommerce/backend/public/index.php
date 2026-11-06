@@ -29,8 +29,8 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 try {
     // Protected Admin Test Route
     if ($method === 'GET' && $path === '/api/admin/protected') {
-        if (!AuthMiddleware::handle()) {
-            exit;
+        if (!AuthMiddleware::handle('admin')) {
+        exit;
         }
 
         echo json_encode([
@@ -38,6 +38,12 @@ try {
             'message' => 'You are authenticated as an admin.'
         ]);
 
+        exit;
+    }
+
+        // Customer Registration
+    if ($method === 'POST' && $path === '/api/auth/register') {
+        (new AuthController())->register();
         exit;
     }
 
