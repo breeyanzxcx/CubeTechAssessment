@@ -30,14 +30,13 @@ try {
     // Protected Admin Test Route
     if ($method === 'GET' && $path === '/api/admin/protected') {
         if (!AuthMiddleware::handle('admin')) {
-        exit;
-        }
+            exit;
+    }
 
-        echo json_encode([
-            'success' => true,
-            'message' => 'You are authenticated as an admin.'
-        ]);
-
+    echo json_encode([
+        'success' => true,
+        'message' => 'Admin access granted.'
+    ]);
         exit;
     }
 
@@ -48,20 +47,21 @@ try {
     }
 
         // Admin Authentication
-    if ($method === 'POST' && $path === '/api/admin/login') {
-        (new AuthController())->login();
-        exit;
+    if ($method === 'POST' && $path === '/api/auth/login') {
+    (new AuthController())->login();
+    exit;
     }
 
-    if ($method === 'POST' && $path === '/api/admin/logout') {
+    if ($method === 'POST' && $path === '/api/auth/logout') {
         (new AuthController())->logout();
         exit;
     }
 
-    if ($method === 'GET' && $path === '/api/admin/me') {
+    if ($method === 'GET' && $path === '/api/auth/me') {
         (new AuthController())->me();
         exit;
     }
+
     // GET /api/products
     if ($method === 'GET' && $path === '/api/products') {
         (new ProductController())->index();
@@ -83,44 +83,74 @@ try {
         exit;
     }
 
-    // POST /api/orders (Customer checkout)
+        // Customer Checkout
     if ($method === 'POST' && $path === '/api/orders') {
+        if (!AuthMiddleware::handle('customer')) {
+            exit;
+        }
+
         (new OrderController())->store();
         exit;
     }
 
-    // GET /api/orders or /api/admin/orders (Admin: Retrieve all orders, newest first)
-    if (
-        $method === 'GET' &&
-        ($path === '/api/orders' || $path === '/api/admin/orders')
-    ) {
+    // Admin: Retrieve all orders
+    if ($method === 'GET' && $path === '/api/admin/orders') {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
         (new OrderController())->index();
         exit;
     }
 
-    // POST or PUT /api/orders/{id}/cancel or /api/admin/orders/{id}/cancel (Admin: Cancel order)
+    // Admin: Cancel order
     if (
         ($method === 'POST' || $method === 'PUT') &&
-        preg_match('#^/api/(?:admin/)?orders/(\d+)/cancel$#', $path, $matches)
+        preg_match('#^/api/admin/orders/(\d+)/cancel$#', $path, $matches)
     ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
         (new OrderController())->cancel((int) $matches[1]);
         exit;
     }
 
-    // PUT or PATCH /api/orders/{id}/status or /api/admin/orders/{id}/status (Admin: Update status)
+    // Admin: Update order status
     if (
         ($method === 'PUT' || $method === 'PATCH') &&
-        preg_match('#^/api/(?:admin/)?orders/(\d+)/status$#', $path, $matches)
+        preg_match('#^/api/admin/orders/(\d+)/status$#', $path, $matches)
     ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
         (new OrderController())->updateStatus((int) $matches[1]);
         exit;
     }
 
-    // GET /api/orders/{id} or /api/admin/orders/{id} (View individual order details)
+    // Admin: View individual order
     if (
         $method === 'GET' &&
-        preg_match('#^/api/(?:admin/)?orders/(\d+)$#', $path, $matches)
+        preg_match('#^/api/admin/orders/(\d+)$#', $path, $matches)
     ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new OrderController())->show((int) $matches[1]);
+        exit;
+    }
+
+    // Customer: View individual order
+    if (
+        $method === 'GET' &&
+        preg_match('#^/api/orders/(\d+)$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('customer')) {
+            exit;
+        }
+
         (new OrderController())->show((int) $matches[1]);
         exit;
     }

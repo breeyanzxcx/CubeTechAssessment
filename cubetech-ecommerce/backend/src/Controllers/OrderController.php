@@ -177,10 +177,11 @@ class OrderController
         }
 
         $pdo = Database::connect();
-
+        $userId = (int) $_SESSION['user']['id'];
+        
         try {
             $pdo->beginTransaction();
-
+            
             $subtotal = 0;
             $orderItemsToInsert = [];
 
@@ -223,6 +224,7 @@ class OrderController
             $orderStmt = $pdo->prepare("
                 INSERT INTO orders (
                     order_number,
+                    user_id,
                     customer_name,
                     customer_email,
                     customer_contact,
@@ -234,6 +236,7 @@ class OrderController
                     status
                 ) VALUES (
                     :order_number,
+                    :user_id,
                     :customer_name,
                     :customer_email,
                     :customer_contact,
@@ -248,6 +251,8 @@ class OrderController
 
             $orderStmt->execute([
                 'order_number' => $orderNumber,
+                'user_id' => $userId,
+                'customer_name' => $customerName,
                 'customer_name' => $customerName,
                 'customer_email' => $email,
                 'customer_contact' => $contactNumber,
@@ -341,7 +346,10 @@ class OrderController
     {
         $pdo = Database::connect();
 
-        $stmt = $pdo->prepare("
+        $user = $_SESSION['user'] ?? null;
+        $isCustomer = ($user['role'] ?? null) === 'customer';
+
+        $sql = "
             SELECT
                 id,
                 order_number,
@@ -358,9 +366,19 @@ class OrderController
                 updated_at
             FROM orders
             WHERE id = :id
-            LIMIT 1
-        ");
-        $stmt->execute(['id' => $id]);
+        ";
+
+        $params = ['id' => $id];
+
+        if ($isCustomer) {
+            $sql .= " AND user_id = :user_id";
+            $params['user_id'] = (int) $user['id'];
+        }
+
+        $sql .= " LIMIT 1";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         $order = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$order) {
@@ -384,6 +402,7 @@ class OrderController
             WHERE order_id = :order_id
             ORDER BY id ASC
         ");
+
         $itemsStmt->execute(['order_id' => $id]);
         $order['items'] = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
 
