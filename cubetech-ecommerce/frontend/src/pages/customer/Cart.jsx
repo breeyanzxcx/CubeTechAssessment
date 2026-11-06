@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
 
@@ -132,12 +131,12 @@ function Cart() {
             Taxes and shipping are not included.
           </p>
 
-          <button
-            disabled
-            className="mt-6 w-full cursor-not-allowed rounded-lg bg-gray-300 px-4 py-3 font-medium text-gray-600"
-          >
-            Checkout (Coming Next)
-          </button>
+          <Link
+                to="/checkout"
+                className="mt-6 block w-full rounded-lg bg-black px-4 py-3 text-center font-medium text-white transition hover:bg-gray-800"
+            >
+                Proceed to Checkout
+            </Link>
 
           <Link
             to="/products"

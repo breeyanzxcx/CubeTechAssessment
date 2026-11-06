@@ -5,6 +5,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use App\Config\Database;
 use App\Controllers\ProductController;
 use App\Controllers\CategoryController;
+use App\Controllers\OrderController;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
@@ -41,6 +42,21 @@ try {
     // GET /api/categories
     if ($method === 'GET' && $path === '/api/categories') {
         (new CategoryController())->index();
+        exit;
+    }
+
+    // POST /api/orders
+    if ($method === 'POST' && $path === '/api/orders') {
+        (new OrderController())->store();
+        exit;
+    }
+
+    // GET /api/orders/{id}
+    if (
+        $method === 'GET' &&
+        preg_match('#^/api/orders/(\d+)$#', $path, $matches)
+    ) {
+        (new OrderController())->show((int) $matches[1]);
         exit;
     }
 
