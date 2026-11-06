@@ -1,15 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Check } from 'lucide-react'
 import { api } from '../../services/api'
 import { useCart } from '../../context/CartContext'
 
 function Products() {
+  const [searchParams] = useSearchParams()
+  const initialCategory = searchParams.get('category') || 'all'
+  const initialSearch = searchParams.get('search') || ''
+
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
 
-  const [search, setSearch] = useState('')
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [search, setSearch] = useState(initialSearch)
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory)
   const [sortOrder, setSortOrder] = useState('default')
 
   const [loading, setLoading] = useState(true)
@@ -17,6 +21,17 @@ function Products() {
   const [addedId, setAddedId] = useState(null)
 
   const { addToCart, cart } = useCart()
+
+  useEffect(() => {
+    const categoryParam = searchParams.get('category')
+    if (categoryParam) {
+      setSelectedCategory(categoryParam)
+    }
+    const searchParam = searchParams.get('search')
+    if (searchParam) {
+      setSearch(searchParam)
+    }
+  }, [searchParams])
 
   const handleAddToCart = (product) => {
     const success = addToCart(product)

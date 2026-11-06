@@ -4,43 +4,64 @@ import { api } from '../services/api'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [admin, setAdmin] = useState(null)
+  const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await api.get('/admin/me')
-        setAdmin(response.data)
-      } catch {
-        setAdmin(null)
-      } finally {
-        setLoading(false)
+  const checkAuth = async () => {
+    try {
+      const response = await api.get('/auth/me')
+      if (response && response.success && response.data) {
+        setUser(response.data)
+      } else {
+        setUser(null)
       }
+    } catch {
+      setUser(null)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     checkAuth()
   }, [])
 
   const login = async (credentials) => {
-    const response = await api.post('/admin/login', credentials)
-    setAdmin(response.data)
+    const response = await api.post('/auth/login', credentials)
+    if (response && response.success && response.data) {
+      setUser(response.data)
+    }
+    return response
+  }
+
+  const register = async (details) => {
+    const response = await api.post('/auth/register', details)
     return response
   }
 
   const logout = async () => {
-    await api.post('/admin/logout', {})
-    setAdmin(null)
+    try {
+      await api.post('/auth/logout', {})
+    } catch {
+      // Ignored
+    } finally {
+      setUser(null)
+    }
   }
 
   return (
     <AuthContext.Provider
       value={{
-        admin,
+        user,
+        admin: user?.role === 'admin' ? user : null, // backward compatibility
         loading,
         login,
+        register,
         logout,
-        isAuthenticated: Boolean(admin),
+        checkAuth,
+        isAuthenticated: Boolean(user),
+        isAdmin: user?.role === 'admin',
+        isCustomer: user?.role === 'customer',
       }}
     >
       {children}
@@ -49,5 +70,9 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider')
+  }
+  return context
 }

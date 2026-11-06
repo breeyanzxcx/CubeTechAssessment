@@ -7,6 +7,7 @@ use App\Controllers\ProductController;
 use App\Controllers\CategoryController;
 use App\Controllers\OrderController;
 use App\Controllers\AuthController;
+use App\Controllers\DashboardController;
 use App\Middleware\AuthMiddleware;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
@@ -15,7 +16,7 @@ $dotenv->load();
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: http://localhost:5173');
 header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -31,59 +32,156 @@ try {
     if ($method === 'GET' && $path === '/api/admin/protected') {
         if (!AuthMiddleware::handle('admin')) {
             exit;
-    }
+        }
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Admin access granted.'
-    ]);
+        echo json_encode([
+            'success' => true,
+            'message' => 'Admin access granted.'
+        ]);
         exit;
     }
 
-        // Customer Registration
-    if ($method === 'POST' && $path === '/api/auth/register') {
+    // Customer Registration
+    if ($method === 'POST' && ($path === '/api/auth/register' || $path === '/api/register')) {
         (new AuthController())->register();
         exit;
     }
 
-        // Admin Authentication
-    if ($method === 'POST' && $path === '/api/auth/login') {
-    (new AuthController())->login();
-    exit;
+    // Authentication (supports /api/auth/login and legacy /api/admin/login)
+    if ($method === 'POST' && ($path === '/api/auth/login' || $path === '/api/admin/login')) {
+        (new AuthController())->login();
+        exit;
     }
 
-    if ($method === 'POST' && $path === '/api/auth/logout') {
+    if ($method === 'POST' && ($path === '/api/auth/logout' || $path === '/api/admin/logout')) {
         (new AuthController())->logout();
         exit;
     }
 
-    if ($method === 'GET' && $path === '/api/auth/me') {
+    if ($method === 'GET' && ($path === '/api/auth/me' || $path === '/api/admin/me')) {
         (new AuthController())->me();
         exit;
     }
 
-    // GET /api/products
+    if ($method === 'GET' && $path === '/api/admin/dashboard') {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new DashboardController())->index();
+        exit;
+    }
+
     if ($method === 'GET' && $path === '/api/products') {
         (new ProductController())->index();
         exit;
     }
 
-    // GET /api/products/{id}
+    // Admin: retrieve all products (active & inactive)
+    if ($method === 'GET' && $path === '/api/admin/products') {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new ProductController())->adminIndex();
+        exit;
+    }
+
+    // Admin: create product
+    if ($method === 'POST' && $path === '/api/admin/products') {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new ProductController())->store();
+        exit;
+    }
+
+    // Admin: update product
+    if (
+        ($method === 'PUT' || $method === 'PATCH') &&
+        preg_match('#^/api/admin/products/(\d+)$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new ProductController())->update((int) $matches[1]);
+        exit;
+    }
+
+    // Admin: delete product
+    if (
+        $method === 'DELETE' &&
+        preg_match('#^/api/admin/products/(\d+)$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new ProductController())->destroy((int) $matches[1]);
+        exit;
+    }
+
+    // View single product (Customer or Admin)
     if (
         $method === 'GET' &&
-        preg_match('#^/api/products/(\d+)$#', $path, $matches)
+        preg_match('#^/api/(?:admin/)?products/(\d+)$#', $path, $matches)
     ) {
         (new ProductController())->show((int) $matches[1]);
         exit;
     }
 
-    // GET /api/categories
-    if ($method === 'GET' && $path === '/api/categories') {
+    if ($method === 'GET' && ($path === '/api/categories' || $path === '/api/admin/categories')) {
         (new CategoryController())->index();
         exit;
     }
 
-        // Customer Checkout
+    // Admin: create category
+    if ($method === 'POST' && $path === '/api/admin/categories') {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new CategoryController())->store();
+        exit;
+    }
+
+    // Admin: update category
+    if (
+        ($method === 'PUT' || $method === 'PATCH') &&
+        preg_match('#^/api/admin/categories/(\d+)$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new CategoryController())->update((int) $matches[1]);
+        exit;
+    }
+
+    // Admin: delete category
+    if (
+        $method === 'DELETE' &&
+        preg_match('#^/api/admin/categories/(\d+)$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new CategoryController())->destroy((int) $matches[1]);
+        exit;
+    }
+
+    // View single category
+    if (
+        $method === 'GET' &&
+        preg_match('#^/api/(?:admin/)?categories/(\d+)$#', $path, $matches)
+    ) {
+        (new CategoryController())->show((int) $matches[1]);
+        exit;
+    }
+
     if ($method === 'POST' && $path === '/api/orders') {
         if (!AuthMiddleware::handle('customer')) {
             exit;
