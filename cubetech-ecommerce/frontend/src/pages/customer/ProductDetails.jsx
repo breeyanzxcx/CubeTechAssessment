@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { api } from '../../services/api'
+import { useCart } from '../../context/CartContext'
 
 function ProductDetails() {
   const { id } = useParams()
@@ -8,7 +10,18 @@ function ProductDetails() {
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [isAdded, setIsAdded] = useState(false)
+  const { addToCart, cart } = useCart()
 
+  const handleAddToCart = () => {
+    if (!product) return
+    const success = addToCart(product)
+    if (success) {
+      setIsAdded(true)
+      setTimeout(() => setIsAdded(false), 1200)
+    }
+  }
+  
   useEffect(() => {
     async function fetchProduct() {
       try {
@@ -82,12 +95,33 @@ function ProductDetails() {
               : 'Currently out of stock'}
           </p>
 
-          <button
-            disabled={Number(product.stock) <= 0}
-            className="mt-6 w-full rounded-lg bg-black px-6 py-3 font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-300"
-          >
-            {Number(product.stock) > 0 ? 'Add to Cart' : 'Out of Stock'}
-          </button>
+          {(() => {
+            const cartItem = cart.find((item) => item.id === product.id)
+            const isMaxInCart =
+              cartItem && cartItem.quantity >= Number(product.stock)
+            const isOutOfStock = Number(product.stock) <= 0
+
+            return (
+              <button
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isMaxInCart}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-2.5 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-300"
+              >
+                {isAdded ? (
+                  <>
+                    <Check className="h-5 w-5 text-emerald-400" />
+                    <span>Added to Cart!</span>
+                  </>
+                ) : isOutOfStock ? (
+                  'Out of Stock'
+                ) : isMaxInCart ? (
+                  `Limit Reached (${cartItem.quantity} in cart)`
+                ) : (
+                  'Add to Cart'
+                )}
+              </button>
+            )
+          })()}
         </div>
       </div>
 

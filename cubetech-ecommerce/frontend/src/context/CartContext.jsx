@@ -4,7 +4,8 @@ const CartContext = createContext(null)
 
 function getSavedCart() {
   try {
-    return JSON.parse(localStorage.getItem('cubetech-cart')) || []
+    const saved = JSON.parse(localStorage.getItem('cubetech-cart'))
+    return Array.isArray(saved) ? saved : []
   } catch {
     return []
   }
@@ -12,27 +13,51 @@ function getSavedCart() {
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState(getSavedCart)
+  const [toast, setToast] = useState(null)
 
   useEffect(() => {
     localStorage.setItem('cubetech-cart', JSON.stringify(cart))
   }, [cart])
 
-  function addToCart(product) {
-    if (Number(product.stock) <= 0) return false
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => {
+      setToast(null)
+    }, 3000)
+    return () => clearTimeout(timer)
+  }, [toast])
 
-    let added = false
+  function showToast(message, type = 'success') {
+    setToast({ message, type })
+  }
+
+  function clearToast() {
+    setToast(null)
+  }
+
+  function addToCart(product) {
+    const stock = Number(product.stock)
+    if (stock <= 0) {
+      showToast(`"${product.name}" is currently out of stock.`, 'error')
+      return false
+    }
+
+    const existing = cart.find((item) => item.id === product.id)
+    if (existing && existing.quantity >= stock) {
+      showToast(
+        `Limit reached: Only ${stock} units of "${product.name}" available in stock.`,
+        'error'
+      )
+      return false
+    }
 
     setCart((currentCart) => {
-      const existing = currentCart.find(
-        (item) => item.id === product.id
-      )
+      const existingItem = currentCart.find((item) => item.id === product.id)
 
-      if (existing) {
-        if (existing.quantity >= Number(product.stock)) {
+      if (existingItem) {
+        if (existingItem.quantity >= stock) {
           return currentCart
         }
-
-        added = true
 
         return currentCart.map((item) =>
           item.id === product.id
@@ -41,8 +66,6 @@ export function CartProvider({ children }) {
         )
       }
 
-      added = true
-
       return [
         ...currentCart,
         {
@@ -50,13 +73,14 @@ export function CartProvider({ children }) {
           name: product.name,
           price: Number(product.price),
           image_url: product.image_url,
-          stock: Number(product.stock),
+          stock: stock,
           quantity: 1,
         },
       ]
     })
 
-    return added
+    showToast(`Added "${product.name}" to cart!`, 'success')
+    return true
   }
 
   function updateQuantity(productId, quantity) {
@@ -102,6 +126,9 @@ export function CartProvider({ children }) {
         cart,
         cartCount,
         cartTotal,
+        toast,
+        showToast,
+        clearToast,
         addToCart,
         updateQuantity,
         removeFromCart,

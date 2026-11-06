@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import { api } from '../../services/api'
+import { useCart } from '../../context/CartContext'
 
 function Products() {
   const [products, setProducts] = useState([])
@@ -11,6 +14,19 @@ function Products() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [addedId, setAddedId] = useState(null)
+
+  const { addToCart, cart } = useCart()
+
+  const handleAddToCart = (product) => {
+    const success = addToCart(product)
+    if (success) {
+      setAddedId(product.id)
+      setTimeout(() => {
+        setAddedId((curr) => (curr === product.id ? null : curr))
+      }, 1200)
+    }
+  }
 
   useEffect(() => {
     async function fetchData() {
@@ -149,7 +165,8 @@ function Products() {
               </h2>
 
               <p className="mt-2 font-bold">
-                ₱{Number(product.price).toLocaleString('en-PH', {
+                ₱
+                {Number(product.price).toLocaleString('en-PH', {
                   minimumFractionDigits: 2,
                 })}
               </p>
@@ -160,12 +177,22 @@ function Products() {
                   : 'Out of stock'}
               </p>
 
-              <button
-                disabled={Number(product.stock) <= 0}
-                className="mt-4 w-full rounded-lg bg-black px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-gray-300"
-              >
-                {Number(product.stock) > 0 ? 'Add to Cart' : 'Out of Stock'}
-              </button>
+              <div className="mt-4 flex flex-col gap-2">
+                <Link
+                  to={`/products/${product.id}`}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 text-center text-sm font-medium transition hover:bg-gray-100"
+                >
+                  View Details
+                </Link>
+
+                {(() => {
+                  const cartItem = cart.find((item) => item.id === product.id)
+                  const isMaxInCart =
+                    cartItem && cartItem.quantity >= Number(product.stock)
+                  const isOutOfStock = Number(product.stock) <= 0
+                  const isRecentlyAdded = addedId === product.id
+                })()}
+              </div>
             </article>
           ))}
         </div>
