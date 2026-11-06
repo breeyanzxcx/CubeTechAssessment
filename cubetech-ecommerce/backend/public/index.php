@@ -182,6 +182,12 @@ try {
         exit;
     }
 
+    // Review / Validate cart items before checkout (Price & Availability check)
+    if ($method === 'POST' && ($path === '/api/orders/review' || $path === '/api/orders/validate')) {
+        (new OrderController())->review();
+        exit;
+    }
+
     if ($method === 'POST' && $path === '/api/orders') {
         if (!AuthMiddleware::handle('customer')) {
             exit;

@@ -73,9 +73,158 @@ class OrderController
         ]);
     }
 
-    /**
-     * Place a new order (customer checkout).
-     */
+    public function review(): void
+    {
+        $input = file_get_contents('php://input');
+        $data = json_decode($input, true);
+
+        $rawItems = $data['items'] ?? [];
+
+        if (empty($rawItems) || !is_array($rawItems)) {
+            http_response_code(422);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Cart items are required for review.'
+            ]);
+            return;
+        }
+
+        $pdo = Database::connect();
+
+        $changes = [];
+        $verifiedItems = [];
+        $hasChanges = false;
+        $canProceed = true;
+        $calculatedSubtotal = 0;
+
+        // Group duplicates if any
+        $mergedItems = [];
+        foreach ($rawItems as $item) {
+            $productId = (int) ($item['product_id'] ?? $item['id'] ?? 0);
+            $quantity = (int) ($item['quantity'] ?? 0);
+            $clientPrice = isset($item['price']) ? (float) $item['price'] : null;
+
+            if ($productId <= 0 || $quantity <= 0) continue;
+
+            if (!isset($mergedItems[$productId])) {
+                $mergedItems[$productId] = [
+                    'id' => $productId,
+                    'quantity' => 0,
+                    'client_price' => $clientPrice,
+                ];
+            }
+            $mergedItems[$productId]['quantity'] += $quantity;
+        }
+
+        foreach ($mergedItems as $productId => $itemData) {
+            $requestedQty = $itemData['quantity'];
+            $clientPrice = $itemData['client_price'];
+
+            $stmt = $pdo->prepare("
+                SELECT p.id, p.name, p.price, p.stock, p.is_active, p.image_url, c.name AS category_name
+                FROM products p
+                INNER JOIN categories c ON p.category_id = c.id
+                WHERE p.id = :id
+                LIMIT 1
+            ");
+            $stmt->execute(['id' => $productId]);
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            // 1. Check Product Existence & Active Status
+            if (!$product || !(bool)$product['is_active']) {
+                $hasChanges = true;
+                $canProceed = false;
+                $changes[] = [
+                    'id' => $productId,
+                    'name' => $product['name'] ?? 'Unknown Item',
+                    'type' => 'unavailable',
+                    'message' => 'This product is no longer available.',
+                    'client_price' => $clientPrice,
+                    'current_price' => null,
+                    'requested_quantity' => $requestedQty,
+                    'available_stock' => 0,
+                ];
+                continue;
+            }
+
+            $currentPrice = (float) $product['price'];
+            $availableStock = (int) $product['stock'];
+
+            // 2. Check Stock Availability
+            $adjustedQty = $requestedQty;
+            if ($availableStock <= 0) {
+                $hasChanges = true;
+                $canProceed = false;
+                $changes[] = [
+                    'id' => $productId,
+                    'name' => $product['name'],
+                    'type' => 'out_of_stock',
+                    'message' => "\"{$product['name']}\" is currently out of stock.",
+                    'client_price' => $clientPrice,
+                    'current_price' => $currentPrice,
+                    'requested_quantity' => $requestedQty,
+                    'available_stock' => 0,
+                    'adjusted_quantity' => 0,
+                ];
+            } elseif ($requestedQty > $availableStock) {
+                $hasChanges = true;
+                $adjustedQty = $availableStock;
+                $changes[] = [
+                    'id' => $productId,
+                    'name' => $product['name'],
+                    'type' => 'stock_reduced',
+                    'message' => "Only {$availableStock} unit(s) of \"{$product['name']}\" available in stock (you requested {$requestedQty}).",
+                    'client_price' => $clientPrice,
+                    'current_price' => $currentPrice,
+                    'requested_quantity' => $requestedQty,
+                    'available_stock' => $availableStock,
+                    'adjusted_quantity' => $adjustedQty,
+                ];
+            }
+
+            // 3. Check Price Changes
+            if ($clientPrice !== null && abs($clientPrice - $currentPrice) > 0.001) {
+                $hasChanges = true;
+                $changes[] = [
+                    'id' => $productId,
+                    'name' => $product['name'],
+                    'type' => 'price_changed',
+                    'message' => "Price for \"{$product['name']}\" has changed from ₱" . number_format($clientPrice, 2) . " to ₱" . number_format($currentPrice, 2) . ".",
+                    'client_price' => $clientPrice,
+                    'current_price' => $currentPrice,
+                    'requested_quantity' => $requestedQty,
+                    'available_stock' => $availableStock,
+                    'adjusted_quantity' => $adjustedQty,
+                ];
+            }
+
+            if ($adjustedQty > 0) {
+                $lineTotal = $currentPrice * $adjustedQty;
+                $calculatedSubtotal += $lineTotal;
+
+                $verifiedItems[] = [
+                    'id' => (int) $product['id'],
+                    'name' => $product['name'],
+                    'price' => $currentPrice,
+                    'image_url' => $product['image_url'],
+                    'stock' => $availableStock,
+                    'quantity' => $adjustedQty,
+                    'line_total' => $lineTotal,
+                ];
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'has_changes' => $hasChanges,
+            'can_proceed' => $canProceed && count($verifiedItems) > 0,
+            'changes' => $changes,
+            'verified_items' => $verifiedItems,
+            'subtotal' => $calculatedSubtotal,
+            'total' => $calculatedSubtotal,
+        ]);
+    }
+
     public function store(): void
     {
         $input = file_get_contents('php://input');

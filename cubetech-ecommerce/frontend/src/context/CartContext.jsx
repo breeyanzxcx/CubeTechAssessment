@@ -110,6 +110,11 @@ export function CartProvider({ children }) {
     setCart([])
   }
 
+  function syncCart(updatedItems) {
+    if (!Array.isArray(updatedItems)) return
+    setCart(updatedItems)
+  }
+
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
     0
@@ -133,6 +138,7 @@ export function CartProvider({ children }) {
         updateQuantity,
         removeFromCart,
         clearCart,
+        syncCart,
       }}
     >
       {children}
