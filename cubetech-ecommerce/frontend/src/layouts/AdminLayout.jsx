@@ -34,6 +34,12 @@ function AdminLayout() {
       icon: ClipboardList,
       isActive: location.pathname.startsWith('/admin/orders'),
     },
+    {
+      name: 'Products',
+      href: '/admin/products',
+      icon: Package,
+      isActive: location.pathname.startsWith('/admin/products'),
+    },
   ]
 
   const closeMobileMenu = () => setMobileMenuOpen(false)

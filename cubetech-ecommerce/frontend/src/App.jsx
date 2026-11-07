@@ -18,6 +18,7 @@ import AdminLogin from './pages/admin/Login'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminOrderDetails from './pages/admin/AdminOrderDetails'
+import AdminProducts from './pages/admin/AdminProducts'
 
 function App() {
   return (
@@ -55,6 +56,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:id" element={<AdminOrderDetails />} />
+            <Route path="products" element={<AdminProducts />} />
           </Route>
 
           {/* Fallback */}
