@@ -15,6 +15,7 @@ import CustomerRegister from './pages/customer/Register'
 
 // Admin Pages
 import AdminLogin from './pages/admin/Login'
+import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminOrders from './pages/admin/AdminOrders'
 import AdminOrderDetails from './pages/admin/AdminOrderDetails'
 
@@ -50,7 +51,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/admin/orders" replace />} />
+            <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="orders/:id" element={<AdminOrderDetails />} />
           </Route>

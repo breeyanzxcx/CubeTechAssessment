@@ -63,7 +63,7 @@ try {
         exit;
     }
 
-    if ($method === 'GET' && $path === '/api/admin/dashboard') {
+    if ($method === 'GET' && ($path === '/api/admin/dashboard' || $path === '/api/dashboard')) {
         if (!AuthMiddleware::handle('admin')) {
             exit;
         }

@@ -56,3 +56,9 @@ VALUES
 (3, 'Old Printer Model',
  'Discontinued printer model.',
  2999.00, 5, NULL, FALSE);
+
+
+-- USERS (Default password: admin123)
+INSERT INTO users (name, email, password_hash, role) VALUES
+('System Administrator', 'admin@cubetech.com', '$2y$10$X6ydj7QMn7oqGVgl644XqeJzZkVaOrHnGprL3crLa1s/U.EbfuVzO', 'admin'),
+('John Customer', 'john@example.com', '$2y$10$X6ydj7QMn7oqGVgl644XqeJzZkVaOrHnGprL3crLa1s/U.EbfuVzO', 'customer');
