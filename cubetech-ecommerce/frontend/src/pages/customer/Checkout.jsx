@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, AlertCircle, RefreshCw, AlertTriangle, ArrowRight } from 'lucide-react'
+import { CheckCircle2, AlertCircle, RefreshCw, AlertTriangle, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
 import { api } from '../../services/api'
+import EmptyState from '../../components/common/EmptyState'
+import ConfirmDialog from '../../components/common/ConfirmDialog'
 
 function Checkout() {
   const { cart, cartTotal, clearCart, syncCart, showToast } = useCart()
@@ -20,6 +22,7 @@ function Checkout() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [completedOrder, setCompletedOrder] = useState(null)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   // Price & Availability Review State
   const [reviewData, setReviewData] = useState(null)
@@ -111,7 +114,7 @@ function Checkout() {
     }
   }
 
-  async function handleSubmit(e) {
+  function handleSubmit(e) {
     e.preventDefault()
 
     const validationErrors = validateForm()
@@ -127,6 +130,11 @@ function Checkout() {
       return
     }
 
+    setShowConfirmModal(true)
+  }
+
+  async function executePlaceOrder() {
+    setShowConfirmModal(false)
     setIsSubmitting(true)
     setSubmitError('')
 
@@ -167,36 +175,43 @@ function Checkout() {
 
   if (completedOrder) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-16 text-center text-left font-sans">
+      <main className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 font-sans">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
           <CheckCircle2 className="h-10 w-10" />
         </div>
 
-        <h1 className="text-3xl font-black text-gray-900 tracking-tight text-center">
+        <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight text-center">
           Thank You for Your Order!
         </h1>
         <p className="mt-2 text-sm text-gray-600 text-center">
-          Your order has been recorded in our database and is being prepared.
+          Your order has been recorded in our database and is being processed for dispatch.
         </p>
 
-        <div className="mt-8 space-y-4 rounded-2xl border border-gray-200 bg-gray-50/80 p-6 shadow-xs">
-          <div className="flex justify-between border-b border-gray-200 pb-3 text-sm">
+        <div className="mt-8 space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs">
+          <div className="flex justify-between border-b border-gray-100 pb-3 text-sm">
             <span className="text-gray-500">Order Number</span>
-            <span className="font-mono font-bold text-black">
+            <span className="font-mono font-bold text-gray-900">
               {completedOrder.order_number}
             </span>
           </div>
 
-          <div className="flex justify-between border-b border-gray-200 pb-3 text-sm">
+          <div className="flex justify-between border-b border-gray-100 pb-3 text-sm">
             <span className="text-gray-500">Customer Name</span>
-            <span className="font-medium text-black">
+            <span className="font-semibold text-gray-900">
               {completedOrder.customer_name}
             </span>
           </div>
 
+          <div className="flex justify-between border-b border-gray-100 pb-3 text-sm">
+            <span className="text-gray-500">Payment Method</span>
+            <span className="font-semibold text-gray-900">
+              {completedOrder.payment_method === 'COD' ? 'Cash on Delivery' : 'GCash'}
+            </span>
+          </div>
+
           <div className="flex justify-between pt-1 text-base font-semibold">
-            <span>Total Amount</span>
-            <span className="font-bold text-black text-lg">
+            <span className="text-gray-900">Total Amount</span>
+            <span className="font-black text-gray-900 text-xl">
               ₱{formatPrice(completedOrder.total)}
             </span>
           </div>
@@ -205,7 +220,7 @@ function Checkout() {
         <div className="mt-8 flex justify-center">
           <Link
             to="/products"
-            className="rounded-xl bg-black px-7 py-3 text-sm font-bold text-white transition hover:bg-gray-800 shadow-xs"
+            className="rounded-xl bg-black px-7 py-3 text-sm font-bold text-white transition hover:bg-gray-800 shadow-2xs"
           >
             Continue Shopping
           </Link>
@@ -216,25 +231,20 @@ function Checkout() {
 
   if (cart.length === 0) {
     return (
-      <main className="mx-auto max-w-7xl px-6 py-16 text-center text-left font-sans">
-        <h1 className="text-3xl font-black text-gray-900 text-center">Your Cart is Empty</h1>
-        <p className="mt-4 text-sm text-gray-500 text-center">
-          Add tech gear to your cart before proceeding to checkout.
-        </p>
-        <div className="mt-6 text-center">
-          <Link
-            to="/products"
-            className="inline-block rounded-xl bg-black px-6 py-3 text-sm font-semibold text-white hover:bg-gray-800"
-          >
-            Browse Catalog
-          </Link>
-        </div>
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+        <EmptyState
+          icon={ShoppingBag}
+          title="Your Shopping Cart is Empty"
+          description="Add items to your cart before proceeding to checkout."
+          actionLabel="Browse Products"
+          actionTo="/products"
+        />
       </main>
     )
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 text-left font-sans">
+    <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 text-left font-sans">
       <h1 className="mb-8 text-3xl font-black tracking-tight text-gray-900">
         Checkout
       </h1>
@@ -506,6 +516,19 @@ function Checkout() {
           </Link>
         </aside>
       </form>
+
+      {/* Order Placement Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showConfirmModal}
+        title="Confirm Your Order"
+        message={`Are you ready to submit this order of ${cart.length} item(s) totaling ₱${formatPrice(cartTotal)}? Payment method: ${formData.payment_method === 'COD' ? 'Cash on Delivery' : 'GCash'} to be delivered to "${formData.delivery_address}".`}
+        confirmLabel="Confirm & Place Order"
+        cancelLabel="Review Information"
+        variant="primary"
+        isLoading={isSubmitting}
+        onConfirm={executePlaceOrder}
+        onCancel={() => setShowConfirmModal(false)}
+      />
     </main>
   )
 }

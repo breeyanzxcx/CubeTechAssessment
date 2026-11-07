@@ -1,6 +1,6 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { RefreshCw, ShieldAlert } from 'lucide-react'
+import { RefreshCw, ShieldAlert, ArrowLeft, LogIn } from 'lucide-react'
 
 export function ProtectedRoute({ requiredRole = null, children }) {
   const { user, loading, isAuthenticated } = useAuth()
@@ -34,7 +34,20 @@ export function ProtectedRoute({ requiredRole = null, children }) {
             This area requires administrator privileges. You are currently logged in as a customer (<strong>{user?.email}</strong>).
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
-            <Navigate to="/admin/login" state={{ from: location }} replace />
+            <Link
+              to="/admin/login"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-black px-4 py-2.5 text-xs font-semibold text-white shadow-2xs transition hover:bg-gray-800"
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              <span>Admin Login</span>
+            </Link>
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Return Home</span>
+            </Link>
           </div>
         </div>
       )

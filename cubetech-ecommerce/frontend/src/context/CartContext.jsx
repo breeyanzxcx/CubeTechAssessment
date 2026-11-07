@@ -88,8 +88,15 @@ export function CartProvider({ children }) {
 
     if (!Number.isInteger(newQuantity) || newQuantity < 1) return
 
-    setCart((currentCart) =>
-      currentCart.map((item) =>
+    setCart((currentCart) => {
+      const item = currentCart.find((i) => i.id === productId)
+      if (item && newQuantity > item.stock) {
+        showToast(
+          `Cannot increase beyond available stock (${item.stock} units).`,
+          'error'
+        )
+      }
+      return currentCart.map((item) =>
         item.id === productId
           ? {
               ...item,
@@ -97,17 +104,24 @@ export function CartProvider({ children }) {
             }
           : item
       )
-    )
+    })
   }
 
-  function removeFromCart(productId) {
-    setCart((currentCart) =>
-      currentCart.filter((item) => item.id !== productId)
-    )
+  function removeFromCart(productId, notify = true) {
+    setCart((currentCart) => {
+      const item = currentCart.find((i) => i.id === productId)
+      if (item && notify) {
+        showToast(`Removed "${item.name}" from your cart.`, 'info')
+      }
+      return currentCart.filter((item) => item.id !== productId)
+    })
   }
 
-  function clearCart() {
+  function clearCart(notify = false) {
     setCart([])
+    if (notify) {
+      showToast('Shopping cart cleared.', 'info')
+    }
   }
 
   function syncCart(updatedItems) {

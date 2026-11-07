@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { LogIn, AlertCircle, ShoppingBag } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 
 function CustomerLogin() {
   const { login, isAuthenticated } = useAuth()
+  const { showToast } = useCart()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -30,6 +32,7 @@ function CustomerLogin() {
       const response = await login({ email, password })
 
       if (response && response.success) {
+        showToast(`Welcome back, ${response.data?.name || 'Customer'}!`, 'success')
         navigate(from, { replace: true })
       } else {
         throw new Error(response?.message || 'Invalid email or password.')

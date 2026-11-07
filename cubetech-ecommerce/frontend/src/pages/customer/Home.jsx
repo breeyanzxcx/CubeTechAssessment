@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -9,15 +9,19 @@ import {
   Sparkles,
   Check,
   ShoppingBag,
+  PackageOpen,
 } from 'lucide-react'
 import heroImage from '../../assets/hero.png'
 import { api } from '../../services/api'
 import { useCart } from '../../context/CartContext'
+import ErrorMessage from '../../components/common/ErrorMessage'
+import EmptyState from '../../components/common/EmptyState'
 
 function Home() {
   const [categories, setCategories] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [addedId, setAddedId] = useState(null)
 
   const { addToCart, cart } = useCart()
@@ -38,31 +42,33 @@ function Home() {
       maximumFractionDigits: 2,
     })
 
-  useEffect(() => {
-    async function fetchHomeData() {
-      try {
-        const [prodRes, catRes] = await Promise.all([
-          api.get('/products'),
-          api.get('/categories'),
-        ])
+  const fetchHomeData = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const [prodRes, catRes] = await Promise.all([
+        api.get('/products'),
+        api.get('/categories'),
+      ])
 
-        if (prodRes && prodRes.success) {
-          // Take up to 8 active products for the homepage
-          setFeaturedProducts((prodRes.data || []).slice(0, 8))
-        }
-
-        if (catRes && catRes.success) {
-          setCategories(catRes.data || [])
-        }
-      } catch (err) {
-        console.error('Error loading homepage data:', err)
-      } finally {
-        setLoading(false)
+      if (prodRes && prodRes.success) {
+        setFeaturedProducts((prodRes.data || []).slice(0, 8))
       }
-    }
 
-    fetchHomeData()
+      if (catRes && catRes.success) {
+        setCategories(catRes.data || [])
+      }
+    } catch (err) {
+      console.error('Error loading homepage data:', err)
+      setError(err.message || 'Failed to connect to the store database.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    fetchHomeData()
+  }, [fetchHomeData])
 
   return (
     <div className="space-y-16 pb-16 text-left">
@@ -236,6 +242,20 @@ function Home() {
               />
             ))}
           </div>
+        ) : error ? (
+          <ErrorMessage
+            title="Unable to load catalog"
+            message={error}
+            onRetry={fetchHomeData}
+          />
+        ) : featuredProducts.length === 0 ? (
+          <EmptyState
+            icon={PackageOpen}
+            title="No featured gear available"
+            description="Our featured inventory will be replenished soon. Check back shortly."
+            actionLabel="View All Products"
+            actionTo="/products"
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {featuredProducts.map((product) => {

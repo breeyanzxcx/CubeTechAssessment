@@ -17,11 +17,13 @@ import {
   User,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 
 function AdminLayout() {
   const location = useLocation()
   const { user, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   const navItems = [
     {
@@ -148,8 +150,9 @@ function AdminLayout() {
               </div>
 
               <button
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 title="Log out"
+                aria-label="Sign out of administrator session"
                 className="shrink-0 p-1.5 text-gray-400 rounded-lg hover:bg-rose-50 hover:text-rose-600 transition"
               >
                 <LogOut className="h-4 w-4" />
@@ -271,8 +274,9 @@ function AdminLayout() {
                     <button
                       onClick={() => {
                         closeMobileMenu()
-                        logout()
+                        setShowLogoutConfirm(true)
                       }}
+                      aria-label="Sign out of administrator session"
                       className="p-1.5 text-gray-400 hover:text-rose-600"
                     >
                       <LogOut className="h-4 w-4" />
@@ -332,6 +336,21 @@ function AdminLayout() {
           </div>
         </footer>
       </div>
+
+      {/* Admin Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="Sign Out of Admin Portal"
+        message="Are you sure you want to terminate your administrator session?"
+        confirmLabel="Sign Out"
+        cancelLabel="Stay in Admin"
+        variant="danger"
+        onConfirm={async () => {
+          await logout()
+          setShowLogoutConfirm(false)
+        }}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   )
 }

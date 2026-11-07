@@ -13,18 +13,29 @@ import {
 } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { useAuth } from '../context/AuthContext'
+import ConfirmDialog from '../components/common/ConfirmDialog'
 
 function CustomerLayout() {
-  const { cartCount, toast, clearToast } = useCart()
+  const { cartCount, toast, clearToast, showToast } = useCart()
   const { user, logout, isAdmin } = useAuth()
   const location = useLocation()
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   // Close mobile drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [location.pathname])
+
+  const handleLogoutConfirm = async () => {
+    try {
+      await logout()
+      showToast('You have been logged out successfully.', 'info')
+    } finally {
+      setShowLogoutConfirm(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-gray-900 text-left font-sans">
@@ -115,9 +126,10 @@ function CustomerLayout() {
                 )}
 
                 <button
-                  onClick={logout}
+                  onClick={() => setShowLogoutConfirm(true)}
                   className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-600 transition"
                   title="Log out"
+                  aria-label="Log out of your account"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -243,8 +255,12 @@ function CustomerLayout() {
                     )}
 
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        setShowLogoutConfirm(true)
+                      }}
                       className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50"
+                      aria-label="Log out of your account"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Log Out</span>
@@ -302,6 +318,17 @@ function CustomerLayout() {
           </div>
         </div>
       </footer>
+      {/* Logout Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="Sign Out of CubeTech"
+        message="Are you sure you want to sign out of your account? Your cart items will remain saved in this browser."
+        confirmLabel="Sign Out"
+        cancelLabel="Stay Signed In"
+        variant="primary"
+        onConfirm={handleLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   )
 }
