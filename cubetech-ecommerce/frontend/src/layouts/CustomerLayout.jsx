@@ -73,12 +73,9 @@ function CustomerLayout() {
           <div className="flex items-center gap-8">
             <Link
               to="/"
-              className="text-2xl font-black tracking-tight text-black transition hover:opacity-85 flex items-center gap-2"
+              className="text-2xl font-black tracking-tight text-black transition hover:opacity-85"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white text-xs font-bold">
-                C
-              </div>
-              <span>CubeTech</span>
+              CubeTech
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 text-sm font-medium">

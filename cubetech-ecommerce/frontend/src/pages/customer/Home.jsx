@@ -2,13 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
-  ShieldCheck,
-  Truck,
-  CreditCard,
-  RotateCcw,
-  Sparkles,
   Check,
-  ShoppingBag,
   PackageOpen,
 } from 'lucide-react'
 import heroImage from '../../assets/hero.png'
@@ -92,11 +86,6 @@ function Home() {
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
             {/* Hero Copy */}
             <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3.5 py-1 text-xs font-semibold text-gray-700 shadow-2xs">
-                <Sparkles className="h-3.5 w-3.5 text-black" />
-                <span>Next-Generation Workstation Gear</span>
-              </div>
-
               <h1 className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl lg:text-6xl leading-[1.1]">
                 Elevate Your Tech Setup With CubeTech.
               </h1>
@@ -108,11 +97,9 @@ function Home() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   to="/products"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-xs transition hover:bg-gray-800"
+                  className="inline-flex items-center justify-center rounded-xl bg-black px-6 py-3.5 text-sm font-semibold text-white shadow-xs transition hover:bg-gray-800"
                 >
-                  <ShoppingBag className="h-4 w-4" />
-                  <span>Browse Catalog</span>
-                  <ArrowRight className="h-4 w-4" />
+                  Browse Catalog
                 </Link>
 
                 <a
@@ -126,7 +113,7 @@ function Home() {
 
             {/* Hero Image */}
             <div className="relative flex justify-center">
-              <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-gray-200 bg-gray-100 p-2 shadow-xl">
+              <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-gray-200 bg-gray-100 p-2">
                 <img
                   src={heroImage}
                   alt="CubeTech Hero Tech Collection"
@@ -143,34 +130,25 @@ function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 rounded-2xl border border-gray-200 bg-white p-6 shadow-2xs">
           {[
             {
-              icon: ShieldCheck,
               title: 'Authentic Gear',
               desc: '100% genuine products directly sourced from verified brands.',
             },
             {
-              icon: Truck,
               title: 'Fast Nationwide Delivery',
               desc: 'Trackable and secure shipping delivered straight to your door.',
             },
             {
-              icon: CreditCard,
               title: 'Flexible Payments',
               desc: 'Cash on delivery, GCash / E-wallets, and direct bank transfer.',
             },
             {
-              icon: RotateCcw,
               title: 'Hassle-Free Returns',
               desc: '7-day replacement warranty for manufacturing defects.',
             },
           ].map((item, idx) => (
-            <div key={idx} className="flex items-start gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-black">
-                <item.icon className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-gray-900">{item.title}</h4>
-                <p className="mt-1 text-xs text-gray-500 leading-relaxed">{item.desc}</p>
-              </div>
+            <div key={idx} className="flex flex-col">
+              <h4 className="text-sm font-bold text-gray-900">{item.title}</h4>
+              <p className="mt-1 text-xs text-gray-500 leading-relaxed">{item.desc}</p>
             </div>
           ))}
         </div>
