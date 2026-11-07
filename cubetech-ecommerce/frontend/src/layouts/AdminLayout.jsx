@@ -11,6 +11,7 @@ import {
   X,
   Package,
   Layers,
+  FolderTree,
   ChevronRight,
   User,
 } from 'lucide-react'
@@ -39,6 +40,12 @@ function AdminLayout() {
       href: '/admin/products',
       icon: Package,
       isActive: location.pathname.startsWith('/admin/products'),
+    },
+    {
+      name: 'Categories',
+      href: '/admin/categories',
+      icon: FolderTree,
+      isActive: location.pathname.startsWith('/admin/categories'),
     },
   ]
 
