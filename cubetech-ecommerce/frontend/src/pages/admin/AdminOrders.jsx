@@ -148,7 +148,7 @@ function AdminOrders() {
 
   // Filtered orders
   const filteredOrders = useMemo(() => {
-    return orders.filter((o) => {
+    const result = orders.filter((o) => {
       const matchesStatus =
         statusFilter === 'ALL' || o.status === statusFilter
 
@@ -161,6 +161,14 @@ function AdminOrders() {
         o.customer_contact?.toLowerCase().includes(q)
 
       return matchesStatus && matchesSearch
+    })
+
+    // Guarantee newest orders first (created_at DESC, id DESC)
+    return [...result].sort((a, b) => {
+      const dateA = new Date(a.created_at).getTime() || 0
+      const dateB = new Date(b.created_at).getTime() || 0
+      if (dateB !== dateA) return dateB - dateA
+      return (b.id || 0) - (a.id || 0)
     })
   }, [orders, statusFilter, search])
 
@@ -518,14 +526,23 @@ function AdminOrders() {
                             </button>
                           )}
 
-                          {/* Details Button */}
+                          {/* Details Modal Button */}
                           <button
                             onClick={() => handleOpenDetails(order)}
                             className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:border-gray-300 hover:text-black hover:bg-gray-50"
-                            title="View full order details"
+                            title="Quick inspect order items"
                           >
                             <Eye className="h-4 w-4" />
                           </button>
+
+                          {/* Dedicated Page Link */}
+                          <Link
+                            to={`/admin/orders/${order.id}`}
+                            className="rounded-lg border border-gray-200 p-1.5 text-gray-500 hover:border-gray-300 hover:text-blue-600 hover:bg-blue-50"
+                            title="Open full order details page"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
                         </div>
                       </td>
                     </tr>
@@ -555,12 +572,22 @@ function AdminOrders() {
                 </span>
               </div>
 
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <Link
+                  to={`/admin/orders/${selectedOrder.id}`}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-2xs hover:bg-gray-50 hover:text-black transition"
+                >
+                  <span>Open Full Page</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-gray-400" />
+                </Link>
+
+                <button
+                  onClick={() => setSelectedOrder(null)}
+                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Modal Body */}
