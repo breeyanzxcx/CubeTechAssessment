@@ -1,5 +1,5 @@
-import { useEffect, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useEffect, useState, useMemo } from 'react'
 import {
   Users,
   Search,
@@ -22,8 +22,8 @@ import {
   Package,
   AlertCircle,
 } from 'lucide-react'
-import { api } from '../../services/api'
 
+import { api } from '../../services/api'
 function formatPrice(amount) {
   const num = Number(amount) || 0
   return `₱${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -471,15 +471,14 @@ export default function AdminCustomers() {
                             {order.order_number}
                           </Link>
                           <span
-                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${
-                              order.status === 'Completed'
+                            className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold ${order.status === 'Completed'
                                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : order.status === 'Cancelled'
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : order.status === 'Pending'
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : 'bg-blue-50 text-blue-700 border border-blue-200'
-                            }`}
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : order.status === 'Pending'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                              }`}
                           >
                             {order.status}
                           </span>

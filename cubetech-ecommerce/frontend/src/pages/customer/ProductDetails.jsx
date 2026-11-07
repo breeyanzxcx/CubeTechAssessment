@@ -1,20 +1,24 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate, useLocation } from 'react-router-dom'
 import { Check, ShoppingCart, ArrowLeft, PackageCheck, AlertCircle, Sparkles } from 'lucide-react'
 import { api } from '../../services/api'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import { Skeleton } from '../../components/common/Skeleton'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import EmptyState from '../../components/common/EmptyState'
 
 function ProductDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const [product, setProduct] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [isAdded, setIsAdded] = useState(false)
   const { addToCart, cart } = useCart()
+  const { isAuthenticated } = useAuth()
 
   const fetchProduct = useCallback(async () => {
     setLoading(true)
@@ -39,6 +43,17 @@ function ProductDetails() {
 
   const handleAddToCart = () => {
     if (!product) return
+
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: location,
+          message: 'Please sign in to your account to add items to your cart.',
+        },
+      })
+      return
+    }
+
     const success = addToCart(product)
     if (success) {
       setIsAdded(true)

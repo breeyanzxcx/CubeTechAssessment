@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Plus, Minus } from 'lucide-react'
+import { Trash2, ShoppingBag, ArrowRight, ArrowLeft, Plus, Minus, LogIn } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import EmptyState from '../../components/common/EmptyState'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 
@@ -14,6 +15,7 @@ function Cart() {
     removeFromCart,
     clearCart,
   } = useCart()
+  const { isAuthenticated } = useAuth()
 
   const [itemToRemove, setItemToRemove] = useState(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
@@ -34,6 +36,20 @@ function Cart() {
   const handleConfirmClear = () => {
     clearCart(true)
     setShowClearConfirm(false)
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 sm:py-20 text-center">
+        <EmptyState
+          icon={LogIn}
+          title="Sign in to View Your Cart"
+          description="You must be signed in to your CubeTech account to add items to your cart and proceed to checkout."
+          actionLabel="Sign In to Continue"
+          actionTo="/login"
+        />
+      </main>
+    )
   }
 
   if (cart.length === 0) {

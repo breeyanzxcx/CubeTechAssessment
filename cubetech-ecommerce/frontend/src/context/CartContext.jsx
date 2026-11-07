@@ -1,23 +1,37 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
 
-function getSavedCart() {
-  try {
-    const saved = JSON.parse(localStorage.getItem('cubetech-cart'))
-    return Array.isArray(saved) ? saved : []
-  } catch {
-    return []
-  }
-}
-
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState(getSavedCart)
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
+  const [cart, setCart] = useState([])
   const [toast, setToast] = useState(null)
 
+  // Load user-specific cart when auth state resolves
   useEffect(() => {
-    localStorage.setItem('cubetech-cart', JSON.stringify(cart))
-  }, [cart])
+    if (authLoading) return
+
+    if (!user) {
+      setCart([])
+    } else {
+      const storageKey = `cubetech-cart_${user.id}`
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey))
+        setCart(Array.isArray(saved) ? saved : [])
+      } catch {
+        setCart([])
+      }
+    }
+  }, [user, authLoading])
+
+  // Save cart changes to user-specific localStorage key
+  useEffect(() => {
+    if (user) {
+      const storageKey = `cubetech-cart_${user.id}`
+      localStorage.setItem(storageKey, JSON.stringify(cart))
+    }
+  }, [cart, user])
 
   useEffect(() => {
     if (!toast) return
@@ -36,6 +50,11 @@ export function CartProvider({ children }) {
   }
 
   function addToCart(product) {
+    if (!isAuthenticated) {
+      showToast('Please sign in to your account to add items to your cart.', 'error')
+      return false
+    }
+
     const stock = Number(product.stock)
     if (stock <= 0) {
       showToast(`"${product.name}" is currently out of stock.`, 'error')
@@ -84,6 +103,8 @@ export function CartProvider({ children }) {
   }
 
   function updateQuantity(productId, quantity) {
+    if (!isAuthenticated) return
+
     const newQuantity = Number(quantity)
 
     if (!Number.isInteger(newQuantity) || newQuantity < 1) return
@@ -119,6 +140,10 @@ export function CartProvider({ children }) {
 
   function clearCart(notify = false) {
     setCart([])
+    if (user) {
+      const storageKey = `cubetech-cart_${user.id}`
+      localStorage.removeItem(storageKey)
+    }
     if (notify) {
       showToast('Shopping cart cleared.', 'info')
     }

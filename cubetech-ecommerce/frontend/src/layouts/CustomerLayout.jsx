@@ -151,34 +151,38 @@ function CustomerLayout() {
               </div>
             )}
 
-            {/* Cart Button */}
-            <Link
-              to="/cart"
-              className="relative flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-800 shadow-2xs transition hover:border-black hover:text-black"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              <span>Cart</span>
-              {cartCount > 0 && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1.5 text-[10px] font-bold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart Button (Only visible when user is signed in) */}
+            {user && (
+              <Link
+                to="/cart"
+                className="relative flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-800 shadow-2xs transition hover:border-black hover:text-black"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                <span>Cart</span>
+                {cartCount > 0 && (
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-black px-1.5 text-[10px] font-bold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
           </div>
 
-          {/* Mobile Right Controls: Cart Pill + Hamburger Button */}
+          {/* Mobile Right Controls: Cart Pill (Only visible when user is signed in) + Hamburger Button */}
           <div className="flex md:hidden items-center gap-2">
-            <Link
-              to="/cart"
-              className="relative flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-800"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {cartCount > 0 && (
-                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[9px] font-bold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+            {user && (
+              <Link
+                to="/cart"
+                className="relative flex items-center gap-1.5 rounded-full border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-800"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {cartCount > 0 && (
+                  <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-black px-1 text-[9px] font-bold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
@@ -221,21 +225,23 @@ function CustomerLayout() {
                   All Products
                 </Link>
 
-                <Link
-                  to="/cart"
-                  className={`flex items-center justify-between rounded-lg px-3 py-2 transition ${
-                    location.pathname === '/cart'
-                      ? 'bg-gray-100 text-black font-bold'
-                      : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <span>Shopping Cart</span>
-                  {cartCount > 0 && (
-                    <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
-                      {cartCount}
-                    </span>
-                  )}
-                </Link>
+                {user && (
+                  <Link
+                    to="/cart"
+                    className={`flex items-center justify-between rounded-lg px-3 py-2 transition ${
+                      location.pathname === '/cart'
+                        ? 'bg-gray-100 text-black font-bold'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>Shopping Cart</span>
+                    {cartCount > 0 && (
+                      <span className="rounded-full bg-black px-2 py-0.5 text-xs text-white">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Link>
+                )}
               </nav>
 
               <div className="border-t border-gray-100 pt-3">
@@ -308,9 +314,11 @@ function CustomerLayout() {
             <Link to="/products" className="hover:text-black transition">
               Catalog
             </Link>
-            <Link to="/cart" className="hover:text-black transition">
-              Cart
-            </Link>
+            {user && (
+              <Link to="/cart" className="hover:text-black transition">
+                Cart
+              </Link>
+            )}
             <Link to="/admin/login" className="hover:text-black transition flex items-center gap-1">
               <span>Admin Portal</span>
               <ExternalLink className="h-3 w-3" />

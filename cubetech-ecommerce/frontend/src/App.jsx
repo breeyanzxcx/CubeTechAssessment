@@ -32,12 +32,12 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
-            <Route path="/cart" element={<Cart />} />
             <Route path="/login" element={<CustomerLogin />} />
             <Route path="/register" element={<CustomerRegister />} />
 
             {/* Protected Customer Routes (Requires Customer Login) */}
             <Route element={<ProtectedRoute requiredRole="customer" />}>
+              <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
             </Route>
           </Route>

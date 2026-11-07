@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   ArrowRight,
   ShieldCheck,
@@ -14,6 +14,7 @@ import {
 import heroImage from '../../assets/hero.png'
 import { api } from '../../services/api'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import EmptyState from '../../components/common/EmptyState'
 
@@ -25,8 +26,21 @@ function Home() {
   const [addedId, setAddedId] = useState(null)
 
   const { addToCart, cart } = useCart()
+  const { isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const handleAddToCart = (product) => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: location,
+          message: 'Please sign in to your account to add items to your cart.',
+        },
+      })
+      return
+    }
+
     const success = addToCart(product)
     if (success) {
       setAddedId(product.id)

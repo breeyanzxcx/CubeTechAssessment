@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams, useNavigate, useLocation } from 'react-router-dom'
 import { Check, ShoppingCart, Search, Filter, SlidersHorizontal, PackageSearch } from 'lucide-react'
 import { api } from '../../services/api'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import { ProductCardSkeleton } from '../../components/common/Skeleton'
 import ErrorMessage from '../../components/common/ErrorMessage'
 import EmptyState from '../../components/common/EmptyState'
 
 function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const initialCategory = searchParams.get('category') || 'all'
   const initialSearch = searchParams.get('search') || ''
 
@@ -24,6 +27,7 @@ function Products() {
   const [addedId, setAddedId] = useState(null)
 
   const { addToCart, cart } = useCart()
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     const categoryParam = searchParams.get('category')
@@ -37,6 +41,16 @@ function Products() {
   }, [searchParams])
 
   const handleAddToCart = (product) => {
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: location,
+          message: 'Please sign in to your account to add items to your cart.',
+        },
+      })
+      return
+    }
+
     const success = addToCart(product)
     if (success) {
       setAddedId(product.id)
