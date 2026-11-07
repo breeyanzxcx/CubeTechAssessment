@@ -157,6 +157,52 @@ class DashboardController
             ");
             $topSellingProducts = $topSellingStmt->fetchAll(PDO::FETCH_ASSOC);
 
+            // 7-day daily sales for sales visualization
+            $salesTrend = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $dateKey = date('Y-m-d', strtotime("-$i days"));
+                $dayLabel = date('D', strtotime("-$i days"));
+                $salesTrend[$dateKey] = [
+                    'date' => $dateKey,
+                    'day' => $dayLabel,
+                    'revenue' => 0.0,
+                    'completed_sales' => 0.0,
+                    'order_count' => 0,
+                ];
+            }
+
+            $dailySalesStmt = $pdo->query("
+                SELECT
+                    DATE(created_at) AS order_date,
+                    COUNT(*) AS count,
+                    COALESCE(SUM(CASE WHEN status != 'Cancelled' THEN total ELSE 0 END), 0) AS daily_revenue,
+                    COALESCE(SUM(CASE WHEN status = 'Completed' THEN total ELSE 0 END), 0) AS completed_revenue
+                FROM orders
+                WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+                GROUP BY DATE(created_at)
+            ");
+            while ($row = $dailySalesStmt->fetch(PDO::FETCH_ASSOC)) {
+                $d = $row['order_date'];
+                if (isset($salesTrend[$d])) {
+                    $salesTrend[$d]['revenue'] = (float) $row['daily_revenue'];
+                    $salesTrend[$d]['completed_sales'] = (float) $row['completed_revenue'];
+                    $salesTrend[$d]['order_count'] = (int) $row['count'];
+                }
+            }
+            $dailySales = array_values($salesTrend);
+
+            // Sales by payment method breakdown
+            $paymentStmt = $pdo->query("
+                SELECT
+                    payment_method,
+                    COUNT(*) AS count,
+                    COALESCE(SUM(total), 0) AS total_amount
+                FROM orders
+                WHERE status != 'Cancelled'
+                GROUP BY payment_method
+            ");
+            $salesByPayment = $paymentStmt->fetchAll(PDO::FETCH_ASSOC);
+
             echo json_encode([
                 'success' => true,
                 // Direct top-level fields for straightforward test assertion
@@ -206,6 +252,8 @@ class DashboardController
                     'recent_orders' => $recentOrders,
                     'low_stock_alerts' => $lowStockAlerts,
                     'top_selling_products' => $topSellingProducts,
+                    'daily_sales' => $dailySales,
+                    'sales_by_payment' => $salesByPayment,
                 ]
             ]);
         } catch (Throwable $e) {
