@@ -269,6 +269,16 @@ try {
         exit;
     }
 
+    // Customer: List own orders
+    if ($method === 'GET' && $path === '/api/orders') {
+        if (!AuthMiddleware::handle('customer')) {
+            exit;
+        }
+
+        (new OrderController())->myOrders();
+        exit;
+    }
+
     // Customer: View individual order
     if (
         $method === 'GET' &&

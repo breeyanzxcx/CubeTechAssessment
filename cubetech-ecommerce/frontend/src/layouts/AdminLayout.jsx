@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   ShoppingBag,
   ArrowUpRight,
@@ -21,6 +21,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog'
 
 function AdminLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
   const { user, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
@@ -346,8 +347,9 @@ function AdminLayout() {
         cancelLabel="Stay in Admin"
         variant="danger"
         onConfirm={async () => {
-          await logout()
           setShowLogoutConfirm(false)
+          await logout()
+          navigate('/admin/login', { replace: true })
         }}
         onCancel={() => setShowLogoutConfirm(false)}
       />

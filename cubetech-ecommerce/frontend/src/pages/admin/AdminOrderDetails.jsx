@@ -111,6 +111,12 @@ function AdminOrderDetails() {
     fetchOrder()
   }, [id])
 
+  useEffect(() => {
+    if (order && order.order_number) {
+      document.title = `Order #${order.order_number} | CubeTech Admin`
+    }
+  }, [order])
+
   async function handleUpdateStatus(newStatus) {
     if (!order) return
     setActionLoading(true)

@@ -215,6 +215,8 @@ Get-Content cubetech-ecommerce\backend\database\seed.sql | mysql -u root -p cube
 | `/register` | Public | New customer registration form |
 | `/cart` | Customer | Shopping cart view with quantity controls (requires authentication) |
 | `/checkout` | Customer | Order checkout form, review banner, and order confirmation |
+| `/orders` | Customer | Order history list with status badges and details link |
+| `/orders/:id` | Customer | Individual order receipt with line items and delivery status |
 
 ---
 
@@ -288,6 +290,7 @@ The database seed script initializes ready-to-use accounts for testing:
 |---|---|---|---|
 | `POST` | `/api/orders/review` | Customer | Validate cart items against live database price and stock |
 | `POST` | `/api/orders` | Customer | Create order and atomically deduct stock |
+| `GET` | `/api/orders` | Customer | Retrieve all orders placed by the authenticated customer |
 | `GET` | `/api/orders/{id}` | Customer | Retrieve customer order details and invoice |
 | `GET` | `/api/admin/orders` | Admin | Retrieve all orders with newest records first |
 | `GET` | `/api/admin/orders/{id}` | Admin | Retrieve complete order line items and customer contact |

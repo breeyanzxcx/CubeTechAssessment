@@ -468,6 +468,7 @@ class OrderController
                 'success' => true,
                 'message' => 'Order placed successfully!',
                 'data' => [
+                    'id' => $orderId,
                     'order_id' => $orderId,
                     'order_number' => $orderNumber,
                     'customer_name' => $customerName,
@@ -486,6 +487,61 @@ class OrderController
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    /**
+     * List all orders belonging to the currently logged-in customer.
+     * Ownership is matched via customer_email from the session.
+     */
+    public function myOrders(): void
+    {
+        $user = $_SESSION['user'] ?? null;
+
+        if (!$user || ($user['role'] ?? null) !== 'customer') {
+            http_response_code(403);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Access denied.'
+            ]);
+            return;
+        }
+
+        $pdo = Database::connect();
+
+        $userId = (int) ($user['id'] ?? 0);
+        $userEmail = strtolower(trim($user['email'] ?? ''));
+
+        $stmt = $pdo->prepare("
+            SELECT
+                o.id,
+                o.order_number,
+                o.customer_name,
+                o.customer_email,
+                o.payment_method,
+                o.subtotal,
+                o.total,
+                o.status,
+                o.created_at,
+                o.updated_at,
+                COUNT(oi.id)                  AS total_items,
+                COALESCE(SUM(oi.quantity), 0) AS total_quantity
+            FROM orders o
+            LEFT JOIN order_items oi ON oi.order_id = o.id
+            WHERE o.user_id = :user_id OR LOWER(TRIM(o.customer_email)) = :email
+            GROUP BY o.id
+            ORDER BY o.created_at DESC, o.id DESC
+        ");
+
+        $stmt->execute([
+            'user_id' => $userId,
+            'email'   => $userEmail,
+        ]);
+        $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'success' => true,
+            'data'    => $orders
+        ]);
     }
 
     /**
@@ -520,8 +576,9 @@ class OrderController
         $params = ['id' => $id];
 
         if ($isCustomer) {
-            $sql .= " AND user_id = :user_id";
+            $sql .= " AND (user_id = :user_id OR LOWER(TRIM(customer_email)) = :customer_email)";
             $params['user_id'] = (int) $user['id'];
+            $params['customer_email'] = strtolower(trim($user['email']));
         }
 
         $sql .= " LIMIT 1";

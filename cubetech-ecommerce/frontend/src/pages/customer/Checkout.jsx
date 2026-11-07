@@ -2,21 +2,34 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { CheckCircle2, AlertCircle, RefreshCw, AlertTriangle, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react'
 import { useCart } from '../../context/CartContext'
+import { useAuth } from '../../context/AuthContext'
 import { api } from '../../services/api'
 import EmptyState from '../../components/common/EmptyState'
 import ConfirmDialog from '../../components/common/ConfirmDialog'
 
 function Checkout() {
   const { cart, cartTotal, clearCart, syncCart, showToast } = useCart()
+  const { user } = useAuth()
 
   const [formData, setFormData] = useState({
-    customer_name: '',
-    email: '',
+    customer_name: user?.name || '',
+    email: user?.email || '',
     contact_number: '',
     delivery_address: '',
     payment_method: 'COD',
     notes: '',
   })
+
+  // Synchronize customer name and email when auth user loads
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        customer_name: prev.customer_name || user.name || '',
+        email: prev.email || user.email || '',
+      }))
+    }
+  }, [user])
 
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -140,8 +153,8 @@ function Checkout() {
 
     try {
       const payload = {
-        customer_name: formData.customer_name.trim(),
-        email: formData.email.trim(),
+        customer_name: (formData.customer_name || user?.name || '').trim(),
+        email: (formData.email || user?.email || '').trim(),
         contact_number: formData.contact_number.trim(),
         delivery_address: formData.delivery_address.trim(),
         payment_method: formData.payment_method,
@@ -217,10 +230,24 @@ function Checkout() {
           </div>
         </div>
 
-        <div className="mt-8 flex justify-center">
+        <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+          {(completedOrder.id || completedOrder.order_id) && (
+            <Link
+              to={`/orders/${completedOrder.id || completedOrder.order_id}`}
+              className="w-full sm:w-auto rounded-xl bg-black px-6 py-3 text-center text-sm font-bold text-white transition hover:bg-gray-800 shadow-2xs"
+            >
+              View Order Details
+            </Link>
+          )}
+          <Link
+            to="/orders"
+            className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-6 py-3 text-center text-sm font-bold text-gray-800 transition hover:bg-gray-50 shadow-2xs"
+          >
+            My Orders
+          </Link>
           <Link
             to="/products"
-            className="rounded-xl bg-black px-7 py-3 text-sm font-bold text-white transition hover:bg-gray-800 shadow-2xs"
+            className="w-full sm:w-auto rounded-xl border border-gray-200 bg-white px-6 py-3 text-center text-sm font-bold text-gray-800 transition hover:bg-gray-50 shadow-2xs"
           >
             Continue Shopping
           </Link>
@@ -322,15 +349,23 @@ function Checkout() {
             <div className="space-y-4">
               {/* Full Name */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Full Name *
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Full Name *
+                  </label>
+                  {user?.name && (
+                    <span className="text-[11px] font-medium text-gray-500">Auto-filled from account</span>
+                  )}
+                </div>
                 <input
                   type="text"
                   name="customer_name"
                   value={formData.customer_name}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm outline-none focus:border-black transition"
+                  readOnly={Boolean(user?.name)}
+                  className={`w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm outline-none transition ${
+                    user?.name ? 'bg-gray-50 text-gray-700 cursor-not-allowed' : 'focus:border-black'
+                  }`}
                   placeholder="Enter recipient's full name"
                   disabled={isSubmitting}
                 />
@@ -341,15 +376,23 @@ function Checkout() {
 
               {/* Email */}
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Email Address *
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Email Address *
+                  </label>
+                  {user?.email && (
+                    <span className="text-[11px] font-medium text-gray-500">Auto-filled from account</span>
+                  )}
+                </div>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm outline-none focus:border-black transition"
+                  readOnly={Boolean(user?.email)}
+                  className={`w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm outline-none transition ${
+                    user?.email ? 'bg-gray-50 text-gray-700 cursor-not-allowed' : 'focus:border-black'
+                  }`}
                   placeholder="example@email.com"
                   disabled={isSubmitting}
                 />

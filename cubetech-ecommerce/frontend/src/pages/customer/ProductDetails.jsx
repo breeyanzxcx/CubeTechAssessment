@@ -41,6 +41,12 @@ function ProductDetails() {
     fetchProduct()
   }, [fetchProduct])
 
+  useEffect(() => {
+    if (product && product.name) {
+      document.title = `${product.name} | CubeTech`
+    }
+  }, [product])
+
   const handleAddToCart = () => {
     if (!product) return
 

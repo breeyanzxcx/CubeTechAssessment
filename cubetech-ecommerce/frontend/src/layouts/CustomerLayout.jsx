@@ -100,6 +100,19 @@ function CustomerLayout() {
               >
                 Products
               </Link>
+
+              {user && (
+                <Link
+                  to="/orders"
+                  className={`rounded-lg px-3 py-1.5 transition ${
+                    location.pathname.startsWith('/orders')
+                      ? 'text-black font-bold bg-gray-100'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                  }`}
+                >
+                  My Orders
+                </Link>
+              )}
             </nav>
           </div>
 
@@ -224,6 +237,19 @@ function CustomerLayout() {
 
                 {user && (
                   <Link
+                    to="/orders"
+                    className={`rounded-lg px-3 py-2 transition ${
+                      location.pathname.startsWith('/orders')
+                        ? 'bg-gray-100 text-black font-bold'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    My Orders
+                  </Link>
+                )}
+
+                {user && (
+                  <Link
                     to="/cart"
                     className={`flex items-center justify-between rounded-lg px-3 py-2 transition ${
                       location.pathname === '/cart'
@@ -312,9 +338,14 @@ function CustomerLayout() {
               Catalog
             </Link>
             {user && (
-              <Link to="/cart" className="hover:text-black transition">
-                Cart
-              </Link>
+              <>
+                <Link to="/orders" className="hover:text-black transition">
+                  My Orders
+                </Link>
+                <Link to="/cart" className="hover:text-black transition">
+                  Cart
+                </Link>
+              </>
             )}
             <Link to="/admin/login" className="hover:text-black transition flex items-center gap-1">
               <span>Admin Portal</span>

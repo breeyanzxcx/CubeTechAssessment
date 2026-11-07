@@ -12,6 +12,8 @@ import Cart from './pages/customer/Cart'
 import Checkout from './pages/customer/Checkout'
 import CustomerLogin from './pages/customer/Login'
 import CustomerRegister from './pages/customer/Register'
+import MyOrders from './pages/customer/MyOrders'
+import MyOrderDetails from './pages/customer/MyOrderDetails'
 
 // Admin Pages
 import AdminLogin from './pages/admin/Login'
@@ -21,11 +23,13 @@ import AdminOrderDetails from './pages/admin/AdminOrderDetails'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminCategories from './pages/admin/AdminCategories'
 import AdminCustomers from './pages/admin/AdminCustomers'
+import PageTitleManager from './components/common/PageTitleManager'
 
 function App() {
   return (
     <CartProvider>
       <BrowserRouter>
+        <PageTitleManager />
         <Routes>
           {/* Public & Customer Routes */}
           <Route element={<CustomerLayout />}>
@@ -39,6 +43,8 @@ function App() {
             <Route element={<ProtectedRoute requiredRole="customer" />}>
               <Route path="/cart" element={<Cart />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/orders" element={<MyOrders />} />
+              <Route path="/orders/:id" element={<MyOrderDetails />} />
             </Route>
           </Route>
 
