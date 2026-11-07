@@ -20,6 +20,7 @@ import AdminOrders from './pages/admin/AdminOrders'
 import AdminOrderDetails from './pages/admin/AdminOrderDetails'
 import AdminProducts from './pages/admin/AdminProducts'
 import AdminCategories from './pages/admin/AdminCategories'
+import AdminCustomers from './pages/admin/AdminCustomers'
 
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
             <Route path="orders/:id" element={<AdminOrderDetails />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="categories" element={<AdminCategories />} />
+            <Route path="customers" element={<AdminCustomers />} />
           </Route>
 
           {/* Fallback */}

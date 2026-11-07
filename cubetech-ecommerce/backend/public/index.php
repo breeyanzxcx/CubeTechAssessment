@@ -8,6 +8,7 @@ use App\Controllers\CategoryController;
 use App\Controllers\OrderController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\CustomerController;
 use App\Middleware\AuthMiddleware;
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
@@ -69,6 +70,28 @@ try {
         }
 
         (new DashboardController())->index();
+        exit;
+    }
+
+    // Admin: Customers ledger (Strictly read-only)
+    if ($method === 'GET' && ($path === '/api/admin/customers' || $path === '/api/customers')) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new CustomerController())->index();
+        exit;
+    }
+
+    if (
+        $method === 'GET' &&
+        preg_match('#^/api/admin/customers/([^/]+)/orders$#', $path, $matches)
+    ) {
+        if (!AuthMiddleware::handle('admin')) {
+            exit;
+        }
+
+        (new CustomerController())->customerOrders($matches[1]);
         exit;
     }
 
